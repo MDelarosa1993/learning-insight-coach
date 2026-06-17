@@ -45,3 +45,32 @@ func (h *DocumentHandler) Upload(c *gin.Context) {
 		Message:    "document uploaded and indexed",
 	})
 }
+
+func (h *DocumentHandler) Show(c *gin.Context) {
+	documentID := c.Param("document_id")
+
+	if documentID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "document_id is required",
+		})
+		return
+	}
+
+	doc, err := h.service.GetByID(documentID)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	if doc == nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": "document not found",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, doc)
+}

@@ -24,6 +24,7 @@ func SetupRouter(
 	api.Use(middleware.APIKeyAuth(cfg))
 
 	api.POST("/documents", documentHandler.Upload)
+	api.GET("/documents/:document_id", documentHandler.Show)
 	api.POST("/reader/respond", readerHandler.Respond)
 	api.GET("/teacher/classes/:class_id/insights", teacherHandler.Insights)
 	api.POST("/evals/run", evalHandler.Run)

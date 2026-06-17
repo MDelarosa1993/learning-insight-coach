@@ -35,6 +35,7 @@ func (s *Service) Ingest(ctx context.Context, req *models.DocumentUploadRequest)
 		Subject:   req.Subject,
 		GradeMin:  req.GradeMin,
 		GradeMax:  req.GradeMax,
+		Content:   req.Content,
 		Status:    "pending",
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
@@ -111,4 +112,8 @@ func splitText(text string, size int, overlap int) []string {
 	}
 
 	return chunks
+}
+
+func (s *Service) GetByID(documentID string) (*models.Document, error) {
+	return store.GetDocumentByID(documentID)
 }
