@@ -29,6 +29,18 @@ func GetDocument(productID string, documentID string) (*models.Document, error) 
 	return &doc, err
 }
 
+func GetDocumentByID(documentID string) (*models.Document, error) {
+	var doc models.Document
+
+	err := DB.Where("id = ?", documentID).First(&doc).Error
+
+	if err == gorm.ErrRecordNotFound {
+		return nil, nil
+	}
+
+	return &doc, err
+}
+
 func SaveChunks(chunks []*models.DocumentChunk) error {
 	return DB.Create(&chunks).Error
 }

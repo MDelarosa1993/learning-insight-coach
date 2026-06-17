@@ -21,6 +21,7 @@ type Document struct {
 	Subject   string          `json:"subject"`
 	GradeMin  int             `json:"grade_min"`
 	GradeMax  int             `json:"grade_max"`
+	Content   string          `json:"content" gorm:"type:text"`
 	Status    string          `json:"status"`
 	CreatedAt time.Time       `json:"created_at"`
 	UpdatedAt time.Time       `json:"updated_at"`
