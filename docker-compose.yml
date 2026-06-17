@@ -1,0 +1,17 @@
+version: "3.9"
+
+services:
+  coach:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+      - API_KEY=${API_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_MODEL=${OPENAI_MODEL:-gpt-4o-mini}
+      - EMBEDDING_MODEL=${EMBEDDING_MODEL:-text-embedding-3-small}
+      - DATABASE_PATH=/app/data/coach.db
+      - GIN_MODE=release
+    volumes:
+      - ./data:/app/data
