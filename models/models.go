@@ -119,7 +119,6 @@ type ReaderResponse struct {
 	Response        string           `json:"response"`
 	Mode            ReaderMode       `json:"mode"`
 	GroundedSources []GroundedSource `json:"grounded_sources"`
-	TeacherSignal   TeacherSignal    `json:"teacher_signal"`
 	Safety          SafetyResult     `json:"safety"`
 }
 

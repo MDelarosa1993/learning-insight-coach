@@ -109,7 +109,6 @@ func (s *Service) Respond(ctx context.Context, req *models.ReaderRequest) (*mode
 		Response:        answer,
 		Mode:            req.Mode,
 		GroundedSources: buildGroundedSources(matches),
-		TeacherSignal:   teacherSignal,
 		Safety: models.SafetyResult{
 			Grounded:         grounded,
 			GaveDirectAnswer: gaveDirectAnswer,
