@@ -1,21 +1,45 @@
 # Learning Insight Coach
 
-Learning Insight Coach is a Go-based AI reading support API that helps students understand instructional content and gives teachers insight into what students are struggling with.
+Learning Insight Coach is a Go-based AI reading support API.
 
-The app allows teachers or products to upload lesson content, stores that content as searchable chunks, uses OpenAI embeddings to find relevant lesson sections, and generates student-friendly responses such as simplified explanations, hints, quiz prompts, and vocabulary support.
+It helps students understand lesson content by using uploaded instructional material as the source of truth. Teachers or learning platforms can upload lesson content, ask the API to support students with explanations, hints, quiz prompts, and vocabulary help, and then review student struggles through teacher insight endpoints.
 
-It also logs student interactions so teachers can review common struggles by class.
+The app uses a Retrieval-Augmented Generation, or RAG, workflow:
+
+```txt
+Upload lesson content
+        ↓
+Split the lesson into chunks
+        ↓
+Create embeddings for each chunk
+        ↓
+Student asks a question about the lesson
+        ↓
+Find the most relevant chunks
+        ↓
+Send the question and lesson context to OpenAI
+        ↓
+Return a student-friendly response
+        ↓
+Log the student interaction
+        ↓
+Generate teacher insights
+```
 
 ---
 
-## Features
+## What This App Does
+
+Learning Insight Coach is designed for education products that need AI reading support.
+
+It can:
 
 * Upload instructional documents or lesson content
-* Split documents into smaller searchable chunks
-* Generate embeddings for document chunks
+* Split documents into searchable chunks
+* Generate embeddings for each document chunk
 * Search relevant lesson chunks using cosine similarity
-* Provide AI-powered student support in different reading modes
-* Support modes such as:
+* Generate student-friendly AI responses
+* Support different reading modes:
 
   * Simplify
   * Hint
@@ -23,7 +47,7 @@ It also logs student interactions so teachers can review common struggles by cla
   * Vocabulary
 * Check whether student input is allowed
 * Check whether AI responses stay grounded in lesson content
-* Detect whether the AI gave away a direct answer in hint or quiz mode
+* Detect whether the AI gave away a direct answer during hint or quiz mode
 * Log student interactions
 * Generate teacher insights from student struggles
 * Run basic eval cases for AI behavior testing
@@ -42,6 +66,19 @@ It also logs student interactions so teachers can review common struggles by cla
 * godotenv
 * Docker
 * Docker Compose
+
+---
+
+## Requirements
+
+To run this app locally, you need:
+
+* Go 1.22+
+* Docker Desktop
+* Docker Compose
+* An OpenAI API key
+* A terminal
+* Optional: DBeaver, Postman, or another API/database tool
 
 ---
 
@@ -95,131 +132,174 @@ learning-insight-coach/
 
 ---
 
-## How the App Works
+## Getting Started
 
-At a high level, the app works like this:
+You can run the app in two ways:
 
-```txt
-Teacher uploads lesson content
-        ↓
-App stores the document
-        ↓
-App splits the document into chunks
-        ↓
-App creates embeddings for each chunk
-        ↓
-Student highlights text and asks a question
-        ↓
-App embeds the student question
-        ↓
-App finds the most relevant document chunks
-        ↓
-App sends the chunks and question to OpenAI
-        ↓
-AI returns a student-friendly response
-        ↓
-App saves the student interaction
-        ↓
-Teacher can view class insights
+1. With Docker
+2. Directly with Go
+
+The Docker setup is the easiest way for someone else to run the project because it uses your `Dockerfile` and `docker-compose.yml`.
+
+---
+
+# Run the App with Docker
+
+## 1. Clone the repository
+
+```bash
+git clone YOUR_REPO_URL
+cd learning-insight-coach
 ```
 
-This pattern is known as Retrieval-Augmented Generation, or RAG.
-
-Instead of letting the AI answer from general memory, the app first retrieves relevant lesson content and asks the AI to answer using that content.
+Replace `YOUR_REPO_URL` with the real GitHub repository URL.
 
 ---
 
-## Core Concepts
+## 2. Create the environment file
 
-### Document
+Copy the example environment file:
 
-A document is an uploaded lesson, article, or instructional text.
+```bash
+cp .env.example .env
+```
 
-It contains metadata such as:
+Open the new `.env` file and add your real values.
 
-* Title
-* Subject
-* Grade range
-* Product ID
-* Status
+Example:
 
-A document can have the status:
+```env
+PORT=8080
+API_KEY=dev-secret-change-me
+OPENAI_API_KEY=sk-your-real-key-here
+OPENAI_MODEL=gpt-4o-mini
+EMBEDDING_MODEL=text-embedding-3-small
+DATABASE_PATH=data/coach.db
+GIN_MODE=debug
+```
 
-* `pending`
-* `indexed`
-* `failed`
+Important:
 
----
-
-### Document Chunk
-
-A document chunk is a smaller section of a document.
-
-The app splits large documents into chunks so it can search smaller pieces of content instead of sending an entire lesson to the AI every time.
-
-Each chunk stores:
-
-* Document ID
-* Product ID
-* Chunk index
-* Content
-* Embedding
+Do not commit your real `.env` file to GitHub.
 
 ---
 
-### Embedding
+## 3. Create the data folder
 
-An embedding is a numeric representation of text.
+The app uses SQLite. The database file is stored in the `data` folder.
 
-The app uses embeddings to compare the meaning of a student question against the meaning of document chunks.
+Create the folder if it does not already exist:
 
-This allows the app to find relevant lesson content even when the student does not use the exact same words as the lesson.
+```bash
+mkdir -p data
+```
 
----
+The database will be created here:
 
-### Student Interaction
-
-A student interaction is a saved record of a student question.
-
-It includes:
-
-* Student ID
-* Class ID
-* Document ID
-* Highlighted text
-* Student question
-* Reader mode
-* Concept
-* Struggle type
-* Grade level
-* Whether the response was grounded
-
-These records are used to generate teacher insights.
+```txt
+data/coach.db
+```
 
 ---
 
-### Reader Mode
+## 4. Build and start the app
 
-Reader mode controls how the AI should respond.
+Run:
 
-Supported modes:
+```bash
+docker compose up --build
+```
 
-| Mode         | Purpose                                                |
-| ------------ | ------------------------------------------------------ |
-| `simplify`   | Explain the highlighted text in easier language        |
-| `hint`       | Give a helpful hint without directly giving the answer |
-| `quiz`       | Create a practice question or quiz-style response      |
-| `vocabulary` | Explain important words or phrases                     |
+The API should be available at:
+
+```txt
+http://localhost:8080
+```
+
+---
+
+## 5. Test the health endpoint
+
+In another terminal, run:
+
+```bash
+curl http://localhost:8080/health
+```
+
+Expected response:
+
+```json
+{
+  "message": "Learning Insight Coach API is running",
+  "status": "ok"
+}
+```
+
+---
+
+## 6. Stop the app
+
+To stop the running container:
+
+```bash
+docker compose down
+```
+
+Your SQLite database file will stay in the `data` folder because the app uses a mounted volume.
+
+---
+
+# Run the App without Docker
+
+You can also run the app directly with Go.
+
+## 1. Install dependencies
+
+```bash
+go mod tidy
+```
+
+## 2. Create the environment file
+
+```bash
+cp .env.example .env
+```
+
+Add your OpenAI API key to `.env`.
+
+## 3. Start the app
+
+```bash
+go run main.go
+```
+
+Or use the Makefile:
+
+```bash
+make run
+```
+
+The API should be available at:
+
+```txt
+http://localhost:8080
+```
 
 ---
 
 ## Environment Variables
 
-Create a `.env` file from the example file:
+The app uses environment variables for configuration.
 
-```bash
-cp .env.example .env
-```
+| Variable          | Description                              |
+| ----------------- | ---------------------------------------- |
+| `PORT`            | Port where the server runs               |
+| `API_KEY`         | API key required for protected routes    |
+| `OPENAI_API_KEY`  | Your OpenAI API key                      |
+| `OPENAI_MODEL`    | Chat model used for student responses    |
+| `EMBEDDING_MODEL` | Embedding model used for document search |
+| `DATABASE_PATH`   | SQLite database path                     |
+| `GIN_MODE`        | Gin mode, usually `debug` or `release`   |
 
 Example `.env`:
 
@@ -233,68 +313,35 @@ DATABASE_PATH=data/coach.db
 GIN_MODE=debug
 ```
 
-### Required Variables
-
-| Variable          | Description                              |
-| ----------------- | ---------------------------------------- |
-| `PORT`            | Port where the server runs               |
-| `API_KEY`         | API key required for protected routes    |
-| `OPENAI_API_KEY`  | Your OpenAI API key                      |
-| `OPENAI_MODEL`    | Chat model used for student responses    |
-| `EMBEDDING_MODEL` | Embedding model used for document search |
-| `DATABASE_PATH`   | SQLite database path                     |
-| `GIN_MODE`        | Gin mode, usually `debug` or `release`   |
-
 ---
 
-## Installation
+## Authentication
 
-Clone or create the project folder:
+Most API routes are protected with an API key.
 
-```bash
-mkdir learning-insight-coach
-cd learning-insight-coach
-```
-
-Install dependencies:
-
-```bash
-go mod tidy
-```
-
-Create your `.env` file:
-
-```bash
-cp .env.example .env
-```
-
-Add your OpenAI API key to `.env`.
-
----
-
-## Running the App
-
-Run the API locally:
-
-```bash
-go run main.go
-```
-
-Or use the Makefile:
-
-```bash
-make run
-```
-
-The server should start on:
+Send the API key with this header:
 
 ```txt
-http://localhost:8080
+X-API-Key: dev-secret-change-me
 ```
+
+The value must match the `API_KEY` value in your `.env` file.
+
+The health check route does not require authentication.
 
 ---
 
+# API Endpoints
+
 ## Health Check
+
+```txt
+GET /health
+```
+
+Checks whether the API is running.
+
+Example:
 
 ```bash
 curl http://localhost:8080/health
@@ -311,41 +358,23 @@ Example response:
 
 ---
 
-## API Authentication
-
-Protected routes require an API key.
-
-Send the API key using the `X-API-Key` header:
-
-```txt
-X-API-Key: dev-secret-change-me
-```
-
-The value must match the `API_KEY` value in your `.env` file.
-
----
-
-## API Endpoints
-
-### Health Check
-
-```txt
-GET /health
-```
-
-Checks whether the server is running.
-
----
-
-### Upload Document
+## Upload a Document
 
 ```txt
 POST /api/v1/documents
 ```
 
-Uploads and indexes lesson content.
+Uploads lesson content and indexes it for retrieval.
 
-#### Request
+The app will:
+
+1. Save the document
+2. Split the content into chunks
+3. Generate embeddings for each chunk
+4. Store the searchable chunks
+5. Mark the document as indexed
+
+Example request:
 
 ```bash
 curl -X POST http://localhost:8080/api/v1/documents \
@@ -361,7 +390,7 @@ curl -X POST http://localhost:8080/api/v1/documents \
   }'
 ```
 
-#### Example Response
+Example response:
 
 ```json
 {
@@ -372,11 +401,11 @@ curl -X POST http://localhost:8080/api/v1/documents \
 }
 ```
 
-Save the returned `document_id`. You will need it when asking reader questions.
+Save the `document_id`. You will need it when asking reader questions.
 
 ---
 
-### Reader Response
+## Generate a Student Reader Response
 
 ```txt
 POST /api/v1/reader/respond
@@ -384,7 +413,19 @@ POST /api/v1/reader/respond
 
 Generates a student-friendly response using the uploaded lesson content.
 
-#### Request
+The app will:
+
+1. Check the student input
+2. Load the document chunks
+3. Embed the student question
+4. Find the most relevant chunks
+5. Send the question and chunks to OpenAI
+6. Check whether the response is grounded
+7. Check whether the response gave away a direct answer
+8. Save the student interaction
+9. Return the response and teacher signal
+
+Example request:
 
 ```bash
 curl -X POST http://localhost:8080/api/v1/reader/respond \
@@ -401,7 +442,16 @@ curl -X POST http://localhost:8080/api/v1/reader/respond \
   }'
 ```
 
-#### Example Response
+Supported reader modes:
+
+| Mode         | Purpose                                                |
+| ------------ | ------------------------------------------------------ |
+| `simplify`   | Explain the highlighted text in easier language        |
+| `hint`       | Give a helpful hint without directly giving the answer |
+| `quiz`       | Create a practice question or quiz-style response      |
+| `vocabulary` | Explain important words or phrases                     |
+
+Example response:
 
 ```json
 {
@@ -429,7 +479,7 @@ curl -X POST http://localhost:8080/api/v1/reader/respond \
 
 ---
 
-### Teacher Insights
+## Get Teacher Insights
 
 ```txt
 GET /api/v1/teacher/classes/:class_id/insights
@@ -437,14 +487,14 @@ GET /api/v1/teacher/classes/:class_id/insights
 
 Returns class-level insight based on saved student interactions.
 
-#### Request
+Example request:
 
 ```bash
 curl http://localhost:8080/api/v1/teacher/classes/class-1/insights \
   -H "X-API-Key: dev-secret-change-me"
 ```
 
-#### Example Response
+Example response:
 
 ```json
 {
@@ -468,7 +518,7 @@ curl http://localhost:8080/api/v1/teacher/classes/class-1/insights \
 
 ---
 
-### Run Evals
+## Run Evals
 
 ```txt
 POST /api/v1/evals/run
@@ -476,7 +526,7 @@ POST /api/v1/evals/run
 
 Runs AI behavior test cases from the eval file.
 
-#### Request
+Example request:
 
 ```bash
 curl -X POST http://localhost:8080/api/v1/evals/run \
@@ -492,69 +542,89 @@ curl -X POST "http://localhost:8080/api/v1/evals/run?path=evals/test_cases.json"
 
 ---
 
-## Running Tests
+# Core Concepts
 
-Run all tests:
+## Document
 
-```bash
-go test ./... -v -count=1
-```
+A document is an uploaded lesson, article, or instructional text.
 
-Or use the Makefile:
+It stores information such as:
 
-```bash
-make test
-```
+* Title
+* Subject
+* Grade range
+* Product ID
+* Status
 
----
+A document can have one of these statuses:
 
-## Formatting Code
-
-```bash
-gofmt -w .
-```
-
-Or:
-
-```bash
-make lint
-```
+* `pending`
+* `indexed`
+* `failed`
 
 ---
 
-## Building the App
+## Document Chunk
 
-```bash
-go build -o bin/coach main.go
-```
+A document chunk is a smaller section of a document.
 
-Or:
+The app splits large lessons into chunks so it can search smaller pieces of content instead of sending the entire lesson to OpenAI every time.
 
-```bash
-make build
-```
+Each chunk stores:
 
----
-
-## Running with Docker
-
-Build and run with Docker Compose:
-
-```bash
-docker compose up --build
-```
-
-The app will be available at:
-
-```txt
-http://localhost:8080
-```
+* Document ID
+* Product ID
+* Chunk index
+* Content
+* Embedding
 
 ---
 
-## Main Application Flow
+## Embedding
 
-### 1. Document Upload Flow
+An embedding is a numeric representation of text.
+
+The app uses embeddings to compare the meaning of a student question with the meaning of document chunks. This helps the app find relevant lesson content even when the student uses different words from the original lesson.
+
+---
+
+## Student Interaction
+
+A student interaction is a saved record of a student question and the AI response process.
+
+It includes:
+
+* Student ID
+* Class ID
+* Document ID
+* Highlighted text
+* Student question
+* Reader mode
+* Concept
+* Struggle type
+* Grade level
+* Whether the response was grounded
+
+Teacher insight endpoints use these records to find common student struggles.
+
+---
+
+## Reader Mode
+
+Reader mode controls how the AI should respond to a student.
+
+| Mode         | Purpose                                                |
+| ------------ | ------------------------------------------------------ |
+| `simplify`   | Explain the highlighted text in easier language        |
+| `hint`       | Give a helpful hint without directly giving the answer |
+| `quiz`       | Create a practice question or quiz-style response      |
+| `vocabulary` | Explain important words or phrases                     |
+
+---
+
+# Main Application Flow
+
+## 1. Document Upload Flow
 
 ```txt
 POST /api/v1/documents
@@ -578,7 +648,7 @@ Return document ID
 
 ---
 
-### 2. Student Reader Flow
+## 2. Student Reader Flow
 
 ```txt
 POST /api/v1/reader/respond
@@ -610,7 +680,7 @@ Return response and teacher signal
 
 ---
 
-### 3. Teacher Insight Flow
+## 3. Teacher Insight Flow
 
 ```txt
 GET /api/v1/teacher/classes/:class_id/insights
@@ -630,9 +700,89 @@ Return teacher insight summary
 
 ---
 
-## Development Notes
+# Development Commands
 
-### Cost Control
+## Run the app
+
+```bash
+go run main.go
+```
+
+Or:
+
+```bash
+make run
+```
+
+---
+
+## Run tests
+
+```bash
+go test ./... -v -count=1
+```
+
+Or:
+
+```bash
+make test
+```
+
+---
+
+## Format code
+
+```bash
+gofmt -w .
+```
+
+Or:
+
+```bash
+make lint
+```
+
+---
+
+## Build the app
+
+```bash
+go build -o bin/coach main.go
+```
+
+Or:
+
+```bash
+make build
+```
+
+---
+
+## Run with Docker
+
+```bash
+docker compose up --build
+```
+
+---
+
+# Database
+
+This app currently uses SQLite.
+
+The database path is controlled by this environment variable:
+
+```env
+DATABASE_PATH=data/coach.db
+```
+
+When running with Docker, the `data` folder is mounted so the SQLite database file can persist outside the container.
+
+This means your data can survive when the container stops.
+
+---
+
+# Cost Notes
 
 Each student reader request may call OpenAI multiple times:
 
@@ -641,13 +791,9 @@ Each student reader request may call OpenAI multiple times:
 * One chat call for groundedness checking
 * One chat call for direct answer checking
 
-During local development, you may choose to temporarily disable some guardrail checks to reduce API usage.
+During local development, you may want to temporarily disable some guardrail checks to reduce API usage.
 
----
-
-### Recommended Models
-
-For a cost-friendly development setup:
+Recommended development models:
 
 ```env
 OPENAI_MODEL=gpt-4o-mini
@@ -656,7 +802,67 @@ EMBEDDING_MODEL=text-embedding-3-small
 
 ---
 
-### Common Issue: MaxTokens Error
+# Troubleshooting
+
+## The server does not start
+
+Check that your `.env` file exists:
+
+```bash
+ls -a
+```
+
+Make sure it contains:
+
+```env
+OPENAI_API_KEY=your_openai_api_key_here
+API_KEY=dev-secret-change-me
+```
+
+---
+
+## Docker says an environment variable is missing
+
+Make sure you copied the example file:
+
+```bash
+cp .env.example .env
+```
+
+Then fill in the required values.
+
+---
+
+## The app starts, but OpenAI requests fail
+
+Check that your OpenAI API key is valid:
+
+```env
+OPENAI_API_KEY=sk-your-real-key-here
+```
+
+Also make sure your OpenAI account has access to the models in your `.env` file.
+
+---
+
+## The database does not persist
+
+Make sure the `data` folder exists:
+
+```bash
+mkdir -p data
+```
+
+Also make sure your Docker Compose file mounts the folder:
+
+```yml
+volumes:
+  - ./data:/app/data
+```
+
+---
+
+## MaxTokens error
 
 If you see an error like:
 
@@ -670,9 +876,9 @@ For `gpt-4o-mini`, you can usually omit the token limit while developing.
 
 ---
 
-## Future Improvements
+# Future Improvements
 
-Possible improvements for this app:
+Possible next steps:
 
 * Add user authentication
 * Add teacher accounts
@@ -692,7 +898,7 @@ Possible improvements for this app:
 
 ---
 
-## Summary
+# Summary
 
 Learning Insight Coach is an AI-powered reading support API.
 
@@ -708,4 +914,4 @@ The app combines:
 * Student interaction logging
 * Teacher insight generation
 
-This makes it more than a chatbot. It is a learning support system that can help both students and teachers.
+It is more than a chatbot because it uses uploaded lesson content as context and gives teachers insight into how students are struggling.
