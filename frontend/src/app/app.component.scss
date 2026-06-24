@@ -1,0 +1,20 @@
+.page {
+  min-height: 100vh;
+  background: #f5f7fb;
+  padding: 2rem;
+  font-family: Arial, sans-serif;
+}
+
+h1 {
+  text-align: center;
+}
+
+.current-doc {
+  max-width: 800px;
+  margin: 1rem auto;
+  padding: 1rem;
+  background: #f0fdf4;
+  border-left: 4px solid #16a34a;
+  border-radius: 8px;
+  word-break: break-all;
+}

@@ -1,0 +1,59 @@
+<section class="card">
+  <h2>Teacher Upload</h2>
+
+  <p class="description">
+    Paste lesson content here. The API will store the full lesson, split it into chunks,
+    and create embeddings for student questions.
+  </p>
+
+  <label>
+    Title
+    <input type="text" [(ngModel)]="title" />
+  </label>
+
+  <label>
+    Subject
+    <input type="text" [(ngModel)]="subject" />
+  </label>
+
+  <div class="row">
+    <label>
+      Grade Min
+      <input type="number" [(ngModel)]="gradeMin" />
+    </label>
+
+    <label>
+      Grade Max
+      <input type="number" [(ngModel)]="gradeMax" />
+    </label>
+  </div>
+
+  <label>
+    Product ID
+    <input type="text" [(ngModel)]="productId" />
+  </label>
+
+  <label>
+    Lesson Content
+    <textarea rows="10" [(ngModel)]="content"></textarea>
+  </label>
+
+  <button (click)="uploadDocument()" [disabled]="isLoading">
+    {{ isLoading ? 'Uploading...' : 'Upload Document' }}
+  </button>
+
+  @if (message) {
+    <p class="success">{{ message }}</p>
+  }
+
+  @if (documentId) {
+    <div class="document-id-box">
+      <strong>Document ID:</strong>
+      <p>{{ documentId }}</p>
+    </div>
+  }
+
+  @if (errorMessage) {
+    <p class="error">{{ errorMessage }}</p>
+  }
+</section>

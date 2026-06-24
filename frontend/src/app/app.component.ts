@@ -1,12 +1,18 @@
 import { Component } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { TeacherUploadComponent } from './features/teacher-upload/teacher-upload.component';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet],
+  standalone: true,
+  imports: [TeacherUploadComponent],
   templateUrl: './app.component.html',
-  styleUrl: './app.component.scss'
+  styleUrl: './app.component.scss',
 })
 export class AppComponent {
-  title = 'learning-insight-coach-ui';
+  currentDocumentId = '';
+
+  handleDocumentUploaded(documentId: string): void {
+    this.currentDocumentId = documentId;
+    console.log('Uploaded document ID:', documentId);
+  }
 }

@@ -19,7 +19,7 @@ export class CoachApiService {
     });
   }
 
-  getDocument(data: DocumentUploadRequest): Observable<DocumentUploadResponse> {
+  uploadDocument(data: DocumentUploadRequest): Observable<DocumentUploadResponse> {
     return this.http.post<DocumentUploadResponse>(
       `${this.baseUrl}/documents`,
       data,
